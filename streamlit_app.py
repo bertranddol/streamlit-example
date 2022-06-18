@@ -28,18 +28,18 @@ def run_query(query):
         return cur.fetchall()
 
 with st.echo(code_location='below'):
-    rows = run_query("SELECT ql2_qts, count(*) as cnt from ql2_prod.public.raw_hotels where ql2_qts > 7470 and ql2_qts < 7480 group by ql2_qts order by cnt desc ;")
+    rows = run_query("SELECT site, count(*) as cnt from ql2_prod.public.raw_hotels where ql2_qts > 7470 and ql2_qts < 7480 group by site order by cnt desc ;")
 
+    df = pd.DataFrame (rows, columns = ['ql2_date','count'])
+    df = df.head(10)
+    df.set_index('site', inplace=True, verify_integrity=False)
+    st.bar_chart(df)
 
     # Print results.
     for row in rows:
         if row[1]>100:
             st.write(f"site {row[0]} = {row[1]} ")
 
-    df = pd.DataFrame (rows, columns = ['ql2_date','count'])
-    st.write(f"rows type={type(rows)} - df type= {type(df)} ")
-    df = df.head(10)
-    st.bar_chart(df)
 
     total_points = st.slider("Number of points in spiral", 1, 5000, 2000)
     num_turns = st.slider("Number of turns in spiral", 1, 100, 9)
