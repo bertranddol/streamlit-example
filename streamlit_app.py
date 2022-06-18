@@ -32,7 +32,7 @@ with st.echo(code_location='below'):
 
     df = pd.DataFrame (rows, columns = ['ql2_date','count'])
     df = df.head(10)
-    df = df.set_index('site')
+    df.set_index('site')
     st.bar_chart(df)
 
     # Print results.
