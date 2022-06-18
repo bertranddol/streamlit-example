@@ -27,14 +27,13 @@ def run_query(query):
         cur.execute(query)
         return cur.fetchall()
 
-rows = run_query("SELECT count(*) as cnt, site from ql2_prod.public.raw_hotels where ql2_qts = 7472 group by site order by cnt desc ;")
+rows = run_query("SELECT site, ql2_qts, count(*) as cnt from ql2_prod.public.raw_hotels where ql2_qts = 7472 group by site, ql2_qts order by cnt desc ;")
 
 # Print results.
 for row in rows:
-    st.write(f"{type(rows)} - {type(row)}")
     st.write(f"site {row[1]} has {row[0]} instances")
 
-df = pd.DataFrame (rows, columns = ['count','site'])
+df = pd.DataFrame (rows, columns = ['site','ql2_date','count'])
     
 st.bar_chart(df)
 
