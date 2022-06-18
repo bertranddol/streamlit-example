@@ -28,15 +28,17 @@ def run_query(query):
         return cur.fetchall()
 
 rows = run_query("SELECT count(*) as cnt, site from ql2_prod.public.raw_hotels where ql2_qts = 7472 group by site order by cnt desc ;")
-print ( type( rows ) )
+df = pd.DataFrame (list_name, columns = ['column_name'])
 
 # Print results.
 for row in rows:
     st.write(f"{type(rows)} - {type(row)}")
-    st.write(f"{row[0]} has a :{row[1]}:")
+    st.write(f"site {row[1]} has {row[1]} instances")
 
+df = pd.DataFrame (rows, columns = ['count','site'])
+    
 chart_data = pd.DataFrame(
-     rows,
+     df,
      columns=['count', 'site'])
 
 st.line_chart(chart_data)
