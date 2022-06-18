@@ -29,10 +29,15 @@ def run_query(query):
         return cur.fetchall()
 
 with st.echo(code_location='below'):
-    rows = run_query("SELECT site, count(*) as cnt from ql2_prod.public.raw_hotels where ql2_qts = 7472 group by site order by cnt desc ;")
+    rows = run_query("SELECT site, count(*) as cnt from ql2_prod.public.raw_hotels where ql2_qts > 7468 and ql2_qts < 7472 group by site order by cnt desc ;")
 
     df = pd.DataFrame (rows, columns = ['site','count'])
     df = df.head(10)
+    c = alt.Chart(df).mark_circle().encode(
+     x='site', y='count', size='count', color='site')
+
+    st.altair_chart(c, use_container_width=True)
+
     df.set_index('site')
     df = pd.DataFrame(
        np.random.randn(50, 3),
@@ -42,7 +47,7 @@ with st.echo(code_location='below'):
 
     # Print results.
     for row in rows:
-        if row[1]>100:
+        if row[1]>1000:
             st.write(f"site {row[0]} = {row[1]} ")
 
 
