@@ -3,6 +3,7 @@ import altair as alt
 import math
 import pandas as pd
 import streamlit as st
+import snowflake.connector
 
 """
 # Welcome to Streamlit!
@@ -14,6 +15,31 @@ forums](https://discuss.streamlit.io).
 
 In the meantime, below is an example of what you can do with just a few lines of code:
 """
+@st.experimental_singleton
+def init_connection():
+    return snowflake.connector.connect(**st.secrets["snowflake"])
+
+conn = init_connection()
+
+@st.experimental_memo(ttl=600)
+def run_query(query):
+    with conn.cursor() as cur:
+        cur.execute(query)
+        return cur.fetchall()
+
+rows = run_query("SELECT count(*) as cnt, site from ql2_prod.public.raw_hotels where ql2_qts = 7472 group by site order by cnt desc ;")
+print ( type( rows ) )
+
+# Print results.
+for row in rows:
+    st.write(f"{type(rows)} - {type(row)})
+    st.write(f"{row[0]} has a :{row[1]}:")
+
+chart_data = pd.DataFrame(
+     rows,
+     columns=['count', 'site'])
+
+st.line_chart(chart_data)
 
 
 with st.echo(code_location='below'):
