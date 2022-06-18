@@ -29,11 +29,16 @@ def run_query(query):
 
 rows = run_query("SELECT site, ql2_qts, count(*) as cnt from ql2_prod.public.raw_hotels where ql2_qts = 7472 group by site, ql2_qts order by cnt desc ;")
 
+
 # Print results.
+ii=0
 for row in rows:
-    st.write(f"site {row[1]} has {row[0]} instances")
+    st.write(f"site {row[0]} = {row[2]} ")
+    ii+=1
+    if ii>10: continue
 
 df = pd.DataFrame (rows, columns = ['site','ql2_date','count'])
+st.write(f"rows type={type(rows)} - df type= {type(df)} ")
     
 st.bar_chart(df)
 
