@@ -3,6 +3,7 @@ import altair as alt
 import math
 import pandas as pd
 import streamlit as st
+import numpy as np
 import snowflake.connector
 
 """
@@ -34,8 +35,8 @@ with st.echo(code_location='below'):
     df = df.head(10)
     df.set_index('site')
     df = pd.DataFrame(
-     np.random.randn(50, 3),
-     columns=["a", "b", "c"])
+       np.random.randn(50, 3),
+       columns=["a", "b", "c"])
     
     st.bar_chart(df)
 
