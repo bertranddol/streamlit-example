@@ -28,11 +28,15 @@ def run_query(query):
         return cur.fetchall()
 
 with st.echo(code_location='below'):
-    rows = run_query("SELECT site, count(*) as cnt from ql2_prod.public.raw_hotels where ql2_qts > 7470 and ql2_qts < 7480 group by site order by cnt desc ;")
+    rows = run_query("SELECT site, count(*) as cnt from ql2_prod.public.raw_hotels where ql2_qts = 7472 group by site order by cnt desc ;")
 
     df = pd.DataFrame (rows, columns = ['site','count'])
     df = df.head(10)
     df.set_index('site')
+    df = pd.DataFrame(
+     np.random.randn(50, 3),
+     columns=["a", "b", "c"])
+    
     st.bar_chart(df)
 
     # Print results.
