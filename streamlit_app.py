@@ -32,16 +32,11 @@ rows = run_query("SELECT count(*) as cnt, site from ql2_prod.public.raw_hotels w
 # Print results.
 for row in rows:
     st.write(f"{type(rows)} - {type(row)}")
-    st.write(f"site {row[1]} has {row[1]} instances")
+    st.write(f"site {row[1]} has {row[0]} instances")
 
 df = pd.DataFrame (rows, columns = ['count','site'])
     
-chart_data = pd.DataFrame(
-     df,
-     columns=['count', 'site'])
-
-st.line_chart(chart_data)
-
+st.line_chart(df)
 
 with st.echo(code_location='below'):
     total_points = st.slider("Number of points in spiral", 1, 5000, 2000)
