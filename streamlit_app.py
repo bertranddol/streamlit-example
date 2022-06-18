@@ -28,12 +28,12 @@ def run_query(query):
         return cur.fetchall()
 
 with st.echo(code_location='below'):
-    rows = run_query("SELECT ql2_qts, count(*) as cnt from ql2_prod.public.raw_hotels where ql2_qts = 7472 group by ql2_qts order by cnt desc ;")
+    rows = run_query("SELECT ql2_qts, count(*) as cnt from ql2_prod.public.raw_hotels where ql2_qts > 7470 and ql2_qts < 7480 group by ql2_qts order by cnt desc ;")
 
 
     # Print results.
     for row in rows:
-        if row[1]>10000:
+        if row[1]>100:
             st.write(f"site {row[0]} = {row[1]} ")
 
     df = pd.DataFrame (rows, columns = ['ql2_date','count'])
