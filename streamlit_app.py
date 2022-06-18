@@ -32,7 +32,7 @@ print ( type( rows ) )
 
 # Print results.
 for row in rows:
-    st.write(f"{type(rows)} - {type(row)})
+    st.write(f"{type(rows)} - {type(row)}")
     st.write(f"{row[0]} has a :{row[1]}:")
 
 chart_data = pd.DataFrame(
