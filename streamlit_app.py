@@ -28,7 +28,6 @@ def run_query(query):
         return cur.fetchall()
 
 rows = run_query("SELECT count(*) as cnt, site from ql2_prod.public.raw_hotels where ql2_qts = 7472 group by site order by cnt desc ;")
-df = pd.DataFrame (list_name, columns = ['column_name'])
 
 # Print results.
 for row in rows:
