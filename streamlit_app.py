@@ -30,7 +30,7 @@ def run_query(query):
 with st.echo(code_location='below'):
     rows = run_query("SELECT site, count(*) as cnt from ql2_prod.public.raw_hotels where ql2_qts > 7470 and ql2_qts < 7480 group by site order by cnt desc ;")
 
-    df = pd.DataFrame (rows, columns = ['ql2_date','count'])
+    df = pd.DataFrame (rows, columns = ['site','count'])
     df = df.head(10)
     df.set_index('site')
     st.bar_chart(df)
