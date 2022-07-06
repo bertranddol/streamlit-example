@@ -9,7 +9,6 @@ warnings.filterwarnings('ignore')
 
 @st.experimental_singleton
 def init_snowflake_connection():
-    print(f"hm: init connection to snowflake")
     return snowflake.connector.connect(**st.secrets["snowflake"])
 
 @st.cache
