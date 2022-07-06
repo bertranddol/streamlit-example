@@ -160,8 +160,9 @@ def change_page( direction ):
 # dfgeo, dfnew: subset of dfdaily, hotels for one geobox
 # data: subset of dfgeo or dfnew for one ql2_id
 
-datum = int(sys.argv[1])
-if datum<1:
+if len(sys.argv)>1:
+    datum = int(sys.argv[1])
+else:
     datum=7480
 print(f"\nhm: reset page arg is {datum}")
 dist_arr = [-1, 50, 100, 200, 500]
