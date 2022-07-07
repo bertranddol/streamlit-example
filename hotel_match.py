@@ -36,7 +36,7 @@ def get_max_date():
             from QL2_HOTELMATCH.PUBLIC.DAILY_GEOBOX_MATCH ;"
     return run_snowflake_query( query )[0][0]
 
-@st.cache
+#@st.cache
 def get_hotel_data(ql2_day):
     query = f"SELECT ql2_id, site, property_id, hotel_name, creation_time, \
                                latitude, longitude, geobox, last_match_date, automatch_comment\
