@@ -35,12 +35,7 @@ def get_max_date():
     query = f"SELECT max(ql2_day) \
             from QL2_HOTELMATCH.PUBLIC.DAILY_GEOBOX_MATCH ;"
     rows = run_snowflake_query( query )
-    print( rows )
-    print( type(rows) )
-    print( rows[0])
-    print( rows[0][0] )
     ql2_day = rows[0][0]
-    print( f"ql2_day={ql2_day}")
     return ql2_day
 
 #@st.cache
