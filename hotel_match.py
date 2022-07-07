@@ -3,7 +3,7 @@ import pandas as pd
 import streamlit as st
 import numpy as np
 import snowflake.connector
-import sys
+#import sys
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -13,13 +13,12 @@ def init_snowflake_connection():
 
 @st.cache
 def run_snowflake_query(query):
-    print(f"hm: query={query}")
     with st.session_state.conn.cursor() as cur:
         try:
             cur.execute(query)
             return cur.fetchall()
         except Exception as ee:
-            print (f"{ee}")
+            #print (f"Query error={ee}")
             return []
 
 @st.cache
@@ -29,8 +28,13 @@ def get_page_number(page, total_nb_match, one):
         page = 0
     if page < 0:
         page = total_nb_match - 1
-
     return page
+
+@st.cache
+def get_max_date():
+    query = f"SELECT max(ql2_day) \
+            from QL2_HOTELMATCH.PUBLIC.DAILY_GEOBOX_MATCH ;"
+    return run_snowflake_query( query )[0][0]
 
 @st.cache
 def get_hotel_data(ql2_day):
@@ -40,7 +44,6 @@ def get_hotel_data(ql2_day):
                                where ql2_day = ('{ql2_day}') and status <> '171' and site <> '3333' \
                                order by creation_time desc ;"
     rows = run_snowflake_query( query )
-    print(query)
 
     df = pd.DataFrame(rows, columns = ['ql2_id','site', 'property_id', 'hotel_name', 'creation_time', 'lat', 'lon',
                                        'geobox','last_match_date', 'automatch_comment'])
@@ -65,12 +68,10 @@ def get_hotel_data(ql2_day):
     dfg.sort_values(by=['geobox'], inplace=True)
     dfg.drop_duplicates(subset='geobox', keep='first', inplace=True)
     geolist = dfg['geobox'].to_numpy()
-    print( f"daily={len(df)} geolist={len(geolist)}")
+    
     return df, geolist
 
-#@st.cache
 def set_distance(df, center_lat, center_lon, maxdistance):
-    print( f"Recalculating distances...{center_lat}, {center_lon}, {maxdistance} - coming in {len(df)}")
     df['dlat'] = np.radians(center_lat) - np.radians(df['lat'])
     df['dlon'] = np.radians(center_lon) - np.radians(df['lon'])
     df['distance-3'] = np.power(np.sin(df['dlat'] / 2) , 2)
@@ -79,28 +80,23 @@ def set_distance(df, center_lat, center_lon, maxdistance):
     df['distance-1'] = df['distance-2'] * 6373000
     df['distance'] = df['distance-1'].astype(int)
     df = df.loc[df['distance']<=maxdistance]
-    print(f"Recalculated distances...{center_lat}, {center_lon}, {maxdistance} - coming out {len(df)}")
 
     return df
 
-#@st.cache(allow_output_mutation=True)
 def get_onepage_hotel():
     return st.session_state['dfdaily'].loc[ st.session_state['dfdaily']['geobox'] == st.session_state.geobox_arr[st.session_state.page] ]
 
-#@st.cache
 def set_arc_data(df):
     df_from = df.drop_duplicates(subset='ql2_id', keep='first', inplace=False)
     df_from['lat'] = df_from['lat']-0.00001
     dft = pd.merge(df_from, df, on='ql2_id', how='inner')
     return dft
 
-#@st.cache
 def get_others(dfo):
     for key in st.session_state.site_dict:
         dfo=dfo[dfo['site'].astype(str)!=str(key)]
     return dfo
 
-#@st.cache
 def set_a_dot_layer(title, data, color):
     ALL_LAYERS[title]= pdk.Layer(
         "ScatterplotLayer",
@@ -112,7 +108,6 @@ def set_a_dot_layer(title, data, color):
         pickable=True,
     )
 
-#@st.cache(allow_output_mutation=True)
 def set_arc_layers(title, df_arc):
     ALL_LAYERS[ title ] = pdk.Layer(
             "ArcLayer",
@@ -142,7 +137,6 @@ def set_names( title, df ):
 def change_page( direction ):
     st.session_state.page = get_page_number(st.session_state['page'], st.session_state['total_nb_match'], direction)
     dfgeo = get_onepage_hotel()
-    print(f"new dfgeo has {len(dfgeo)}")
     dfnew = dfgeo.loc[dfgeo['ql2_id'] == dfgeo.iloc[0]['ql2_id']]
     dfgeo = dfgeo.loc[dfgeo['ql2_id'] != dfgeo.iloc[0]['ql2_id']]
     center_lat = np.float(dfnew.iloc[[0]]['lat'] )
@@ -151,19 +145,12 @@ def change_page( direction ):
     dfnew = set_distance(dfnew, center_lat, center_lon, 9999)
     st.session_state.dfgeo = dfgeo
     st.session_state.dfnew = dfnew
-    print(f"page={st.session_state.page} dfgeo now has {len(st.session_state.dfgeo)}")
-    print(f"page={st.session_state.page} new now has {len(dfnew)}")
 
 # Starts here
 # dfdaily: all hotels in a geobox where a match occured that day
 # dfgeo, dfnew: subset of dfdaily, hotels for one geobox
 # data: subset of dfgeo or dfnew for one ql2_id
 
-if len(sys.argv)>1:
-    datum = int(sys.argv[1])
-else:
-    datum=7480
-print(f"\nhm: reset page arg is {datum}")
 dist_arr = [-1, 50, 100, 200, 500]
 
 # Init statefull session
@@ -180,6 +167,7 @@ if 'page' not in st.session_state:
     st.session_state.maxdistance_index = 0
     st.session_state.maxdistance = dist_arr[st.session_state.maxdistance_index] ; # in meters
 
+    datum = get_max_date()
     st.session_state['dfdaily'],st.session_state.geobox_arr = get_hotel_data(datum)
     st.session_state['page'] = 0
     st.session_state['total_nb_match'] = len(st.session_state.geobox_arr)
@@ -236,7 +224,7 @@ if st.session_state.extend == 'surround':
     for key in st.session_state.site_dict:
         source = st.session_state.site_dict[key]
         data = dfgeo.loc[dfgeo['site'].astype(str) == str(key)]
-        print( f"Build geo for {source} - len={len(data)}")
+        #print( f"Build geo for {source} - len={len(data)}")
         if len(data)>0:
             set_a_dot_layer( f"{source} ({len(data)})", data,  st.session_state.colors[source])
 
@@ -247,11 +235,12 @@ if st.session_state.extend == 'surround':
     set_names("Surrounding Hotel Names", dfgeo)
     df_garc = set_arc_data(dfgeo)
     set_arc_layers("Surround Hotel Arcs", df_garc)
-    print(f"Visible arcs={len(df_garc)}")
+    #print(f"Visible arcs={len(df_garc)}")
 
 else:
     if len(dfgeo) > 0:
         dfgeo.drop_duplicates(subset='ql2_id', keep='first', inplace=True)
+        dfgeo['source'] = 'Multiple'
         set_a_dot_layer(f"Unmatched Hotels within {maxdistance}m ({len(dfgeo)})", dfgeo, [125, 125, 128, 200])
 
 
@@ -271,19 +260,19 @@ if st.session_state.extend == 'match':
         set_a_dot_layer(f"Match Others ({len(df_others)})", df_others,  st.session_state.colors["Others"])
 
 else:
-    df1ew = dfnew.groupby(['ql2_id'])['source','lon'].agg(lambda x: ','.join(x.dropna())).reset_index()
-    print(df1ew)
+    #df1ew = dfnew.groupby(['ql2_id'])['source','lon'].agg(lambda x: ','.join(x.dropna())).reset_index()
+    #print(df1ew)
     dfnew.drop_duplicates(subset='ql2_id', keep='first', inplace=True)
+    dfnew['source']='Multiple'
     set_a_dot_layer(f"Matched Property", dfnew, [125, 125, 128, 200])
 
 df_arc = set_arc_data(dfnew)
 set_arc_layers("Matched Hotel Arcs", df_arc)
-print(f"Visible arcs={len(df_arc)}")
 set_names("Matched Hotel Names", dfnew)
 
 
-print(f"Visible matched dots={len(dfnew)}")
-print(f"Visible large group hotel dots={len(dfgeo)}")
+#print(f"Visible matched dots={len(dfnew)}")
+#print(f"Visible large group hotel dots={len(dfgeo)}")
 
 # Add Layers to sidebar
 st.sidebar.markdown("## Sites")
@@ -331,4 +320,3 @@ st.write(f" (lat:{center_lat} long:{center_lon} geobox:{geobox})"  )
 st.write(dfnew)
 st.write(f"----- Surrounding properties -----")
 st.write(dfgeo)
-
