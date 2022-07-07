@@ -34,7 +34,10 @@ def get_page_number(page, total_nb_match, one):
 def get_max_date():
     query = f"SELECT max(ql2_day) \
             from QL2_HOTELMATCH.PUBLIC.DAILY_GEOBOX_MATCH ;"
-    return run_snowflake_query( query )[0][0]
+    rows = run_snowflake_query( query )
+    ql2_day = rows[0[0]
+    print( f"QL2_DAY={ql2_day}")
+    return ql2_day
 
 #@st.cache
 def get_hotel_data(ql2_day):
